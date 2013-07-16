@@ -840,7 +840,7 @@ module.exports = Backbone.View.extend({
     return false;
   },
 
-  stashFile: function(e) {
+  stashFile: function(e) { 
     if (e) e.preventDefault();
     if (!window.sessionStorage) return false;
 
