@@ -14,11 +14,9 @@ var HeaderView = require('./header');
 var ToolbarView = require('./toolbar');
 var MetadataView = require('./metadata');
 var util = require('../util');
-var draw = require('../../vendor/draw');
 var upload = require('../upload');
 var cookie = require('../cookie');
 var templates = require('../../dist/templates');
-
 
 module.exports = Backbone.View.extend({
   id: 'post',
@@ -274,68 +272,6 @@ module.exports = Backbone.View.extend({
     this.stashApply();
   },
 
-  initMap: function() {
-    var map = L.mapbox.map('map', 'examples.map-rlxntei0').setView([0,-7], 14);
-
-        var geoString = this.model.get('content');
-        var geojson = $.parseJSON(geoString);
-        console.log(geojson)
-
-        var drawnItems = new L.FeatureGroup();
-
-        var geojsonLayer = new L.GeoJSON(geojson, {
-          onEachFeature: function (feature, layer) {
-            var popupContent = '';
-            // if (feature.properties && feature.properties.LINE) {
-            //   popupContent += feature.properties;
-            // }
-            // pop = layer.bindPopup(popupContent.LINE);
-            drawnItems.addLayer(layer);
-            layer.addTo(drawnItems)
-          }
-        })
-
-        map.fitBounds(geojsonLayer.getBounds());
-        map.addLayer(drawnItems);
-
-        var drawControl = new L.Control.Draw({
-          draw: {
-            position: 'topleft',
-            polygon: {
-              title: 'Draw a sexy polygon!',
-              allowIntersection: false,
-              drawError: {
-                color: '#b00b00',
-                timeout: 1000
-              },
-              shapeOptions: {
-                color: '#bada55'
-              },
-              showArea: true
-            },
-            circle: {
-              shapeOptions: {
-                color: '#662d91'
-              }
-            }
-          },
-          edit: {
-            featureGroup: drawnItems
-          }
-        });
-        map.addControl(drawControl);
-
-        map.on('draw:created', function (e) {
-          var type = e.layerType,
-              layer = e.layer;
-          console.log(e)
-          drawnItems.addLayer(layer);
-          console.log(drawnItems._layers)
-        });
-
-        
-  },
-
   keyMap: function() {
     var self = this;
 
@@ -476,7 +412,6 @@ module.exports = Backbone.View.extend({
 
       // initialize the subviews
       this.initEditor();
-      this.initMap();
       this.initHeader();
       this.initToolbar();
       this.initSidebar();
