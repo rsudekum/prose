@@ -227,13 +227,13 @@ module.exports = Backbone.View.extend({
     return content;
   },
 
-  initEditor: function() {
+  initEditor: function(update) {
     var lang = this.model.get('lang');
 
     // TODO: set default content for CodeMirror
     this.editor = CodeMirror(this.$el.find('#code')[0], {
       mode: lang,
-      value: this.model.get('content') || '',
+      value: update || this.model.get('content'),
       lineWrapping: true,
       lineNumbers: (lang === 'gfm' || lang === null) ? false : true,
       extraKeys: this.keyMap(),
@@ -274,66 +274,71 @@ module.exports = Backbone.View.extend({
     this.stashApply();
   },
 
-  initMap: function() {
-    var map = L.mapbox.map('map', 'examples.map-rlxntei0').setView([0,-7], 14);
+  initMap: function(e) {
 
-        var geoString = this.model.get('content');
-        var geojson = $.parseJSON(geoString);
-        console.log(geojson)
+    var mapModel = (this);
+    var map = L.mapbox.map('map', 'bobbysud.map-omtwankk').setView([0,-7], 7);
 
-        var drawnItems = new L.FeatureGroup();
-
-        var geojsonLayer = new L.GeoJSON(geojson, {
-          onEachFeature: function (feature, layer) {
-            var popupContent = '';
-            // if (feature.properties && feature.properties.LINE) {
-            //   popupContent += feature.properties;
-            // }
-            // pop = layer.bindPopup(popupContent.LINE);
-            drawnItems.addLayer(layer);
-            layer.addTo(drawnItems)
-          }
-        })
-
-        map.fitBounds(geojsonLayer.getBounds());
-        map.addLayer(drawnItems);
-
-        var drawControl = new L.Control.Draw({
-          draw: {
-            position: 'topleft',
-            polygon: {
-              title: 'Draw a sexy polygon!',
-              allowIntersection: false,
-              drawError: {
-                color: '#b00b00',
-                timeout: 1000
-              },
-              shapeOptions: {
-                color: '#bada55'
-              },
-              showArea: true
-            },
-            circle: {
-              shapeOptions: {
-                color: '#662d91'
-              }
-            }
+    var drawnItems = new L.FeatureGroup();    
+    var drawControl = new L.Control.Draw({
+      draw: {
+        position: 'topleft',
+        polygon: {
+          allowIntersection: true,
+          drawError: {
+            color: '#b00b00'
           },
-          edit: {
-            featureGroup: drawnItems
-          }
-        });
-        map.addControl(drawControl);
+          shapeOptions: {
+            color: '#bada55'
+          },
+          showArea: true
+        },
+        circle:false
+      },
+      edit: {
+        featureGroup: drawnItems
+      }
+    });
+    map.addControl(drawControl);
 
-        map.on('draw:created', function (e) {
-          var type = e.layerType,
-              layer = e.layer;
-          console.log(e)
-          drawnItems.addLayer(layer);
-          console.log(drawnItems._layers)
-        });
+    var geoString = this.model.get('content');
+    var geojson = $.parseJSON(geoString);
 
-        
+    var geojsonLayer = new L.GeoJSON(geojson, {
+      onEachFeature: function (feature, layer) {
+        drawnItems.addLayer(layer);
+        layer.addTo(drawnItems)
+      }
+    })
+
+    map.fitBounds(geojsonLayer.getBounds());
+    map.addLayer(drawnItems);
+
+    map.on('draw:created', function (e) {
+      var layer = e.layer;
+      drawnItems.addLayer(layer);
+      var updatedGeoJSON = JSON.stringify(drawnItems.toGeoJSON());
+      mapModel.initEditor(updatedGeoJSON);
+    });
+
+    map.on('draw:edited', function (e) {
+        var layers = e.layers;
+        layers.eachLayer(function (layer) {
+            drawnItems.addLayer(layer);
+            var updatedGeoJSON = JSON.stringify(drawnItems.toGeoJSON());
+            mapModel.initEditor(updatedGeoJSON);
+        });
+    });
+
+    map.on('draw:deleted', function (e) {
+      var layers = e.layers;
+      layers.eachLayer(function (layer) {
+          drawnItems.removeLayer(layer);
+          var updatedGeoJSON = JSON.stringify(drawnItems.toGeoJSON());
+          mapModel.initEditor(updatedGeoJSON);
+      });
+    });
+
   },
 
   keyMap: function() {

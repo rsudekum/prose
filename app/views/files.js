@@ -127,10 +127,14 @@ module.exports = Backbone.View.extend({
 
       frag.appendChild(view.render().el);
       this.subviews[file.id] = view;
+
+      if(file.id.slice(-7) == 'geojson'){
+      }else{
+      }
+
     }).bind(this));
 
     this.$el.find('ul').html(frag);
-
     return this;
   },
 

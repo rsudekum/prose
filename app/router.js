@@ -16,7 +16,6 @@ var SearchView = require('./views/search');
 var ReposView = require('./views/repos');
 var RepoView = require('./views/repo');
 var FileView = require('./views/file');
-// var MapView = require('./views/map');
 var DocumentationView = require('./views/documentation');
 var ChooseLanguageView = require('./views/chooselanguage');
 
